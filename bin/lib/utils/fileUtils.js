@@ -5,7 +5,11 @@ function writeObjectToFile(object, filePath, delimiter){
 }
 
 function getFile(filePath){
-    return JSON.parse(fs.readFileSync(filePath, {encoding:'utf8', flag:'r'}));
+    try {
+        return JSON.parse(fs.readFileSync(filePath, {encoding:'utf8', flag:'r'}));
+    } catch (err) {
+        return undefined;
+    }
 }
 
 exports.getFile = getFile;
