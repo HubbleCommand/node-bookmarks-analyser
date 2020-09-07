@@ -4,3 +4,9 @@ Simple package that allows you to:
 - Analyse all the bookmarks based on your own xpath selectors
 
 To install, need to do npm i -g
+
+You can then use the tool with a command like :
+
+´´´
+bookmarks-analyser a -f D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json -p D:\Files\Projects\node-bookmarks-analyser\personal\news_params.json -d D:\Files\Projects\node-bookmarks-analyser\personal\analysed.json
+´´´
