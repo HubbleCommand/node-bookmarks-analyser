@@ -15,6 +15,9 @@ program.command('merge')
         fileMerger.mergeFiles(args.files)
     });
 
+    /**
+     * bookmarks-analyser a -f D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json -p D:\Files\Projects\node-bookmarks-analyser\personal\news_params.json -d D:\Files\Projects\node-bookmarks-analyser\personal\analysed.json
+     */
 program.command('analyse')
     .alias('a')
     .description('Will analyse the given bookmarks file based on the given parameters')
