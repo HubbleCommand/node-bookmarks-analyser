@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const { program } = require('commander');
 const fileMerger = require('./lib/merge.js');
-const analyser = require('./lib/analyse.js');
+const scrapper = require('./lib/scrap.js');
 const poster = require('./lib/post.js');
 
 program.version('0.0.1');
@@ -16,16 +16,16 @@ program.command('merge')
     });
 
     /**
-     * bookmarks-analyser a -f D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json -p D:\Files\Projects\node-bookmarks-analyser\personal\news_params.json -d D:\Files\Projects\node-bookmarks-analyser\personal\analysed.json
+     * bookmarks-analyser s -f D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json -p D:\Files\Projects\node-bookmarks-analyser\personal\news_params.json -d D:\Files\Projects\node-bookmarks-analyser\personal\analysed.json
      */
-program.command('analyse')
-    .alias('a')
-    .description('Will analyse the given bookmarks file based on the given parameters')
-    .requiredOption('-f, --file <file>', 'specify the file of URLs to analyse')
+program.command('scrap')
+    .alias('s')
+    .description('Will scrap the given bookmarks file based on the given parameters')
+    .requiredOption('-f, --file <file>', 'specify the file of URLs to scrap')
     .requiredOption('-p, --parameters <parameters>', 'specify file that holds analysis parameters')
     .option('-d, --destination <destination>', 'specify the output file path')
     .action(function(args){
-        analyser.analyse(args.file, args.parameters, args.destination);
+        scrapper.scrap(args.file, args.parameters, args.destination);
     });
 
 program.command('post')
@@ -34,7 +34,7 @@ program.command('post')
     .requiredOption('-f, --file <file>', 'specify the analysis file to post')
     .requiredOption('-d, --destination <destination>', 'specify the URL to post to')
     .action(function(args){
-        analyser.analyse(args.file, args.parameters, args.destination);
+        poster.post(args.file, args.parameters, args.destination);
     });
 
 program.parse();

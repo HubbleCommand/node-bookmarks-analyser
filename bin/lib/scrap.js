@@ -3,15 +3,17 @@ const analysisUtils = require('./utils/AnalysisUtils.js');
 const axios = require('axios');
 var url = require('url');
 
-async function analyse(urlsPath, parametersPath, destinationPath){
+async function scrap(urlsPath, parametersPath, destinationPath){
     var urlsFile = fileUtils.getFile(urlsPath);
     var parameters = fileUtils.getFile(parametersPath);
     //console.log(parameters)
 
     var data = [];
+    var missedSites = [];
 
     for (urlItem of urlsFile){
-        var hostParams = parameters[url.parse(urlItem.href, true).host]  //See if there are any parameters for this host
+        var host = url.parse(urlItem.href, true).host;
+        var hostParams = parameters[host]  //See if there are any parameters for this host
 
         if(hostParams){ //If there are params, analyse with the host parameters
             var siteContent = await axios.get(urlItem.href, hostParams);
@@ -21,11 +23,13 @@ async function analyse(urlsPath, parametersPath, destinationPath){
                 data:urlItemData
             })
         } else {        //If there is NOT any params to search by, handle!
-            console.log("HOST HAS NO PARAMETERS")
+            console.log("HOST " + host + " HAS NO PARAMETERS")
+            missedSites.push(host);
         }
     }
     
     fileUtils.writeObjectToFile(data, destinationPath, 4);
+    fileUtils.writeObjectToFile(missedSites, destinationPath + ".missed", 4);
 }
 
-exports.analyse = analyse
+exports.scrap = scrap
