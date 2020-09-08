@@ -34,7 +34,7 @@ program.command('post')
     .requiredOption('-f, --file <file>', 'specify the analysis file to post')
     .requiredOption('-d, --destination <destination>', 'specify the URL to post to')
     .action(function(args){
-        poster.post(args.file, args.parameters, args.destination);
+        poster.postFile(args.file, args.parameters, args.destination);
     });
 
 program.parse();
