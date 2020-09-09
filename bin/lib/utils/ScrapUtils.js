@@ -46,6 +46,24 @@ function filterWords(textToFilter, wordsToFilterWith){
 }
 
 /**
+ * Finds the longest matching host for the given URL
+ * @param {String} url              The url to compare
+ * @param {Array.<String>} hosts    The list of host URLs to compare to
+ * @returns {String}                The host URL found
+ */
+function findLongestMatchingHost(url, hosts){
+    var longestMatching = "";
+    for(host of hosts){
+        if(url.includes(host)){
+            if(host.length > longestMatching.length){
+                longestMatching = host;
+            }
+        }
+    }
+    return longestMatching;
+}
+
+/**
  * Function that gets the html elements based on the provided parameters
  * @param {CheerioElement} html     The content to scrap
  * @param {Object} parameters       The array of params, see README
