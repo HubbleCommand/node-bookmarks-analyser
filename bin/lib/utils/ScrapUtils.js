@@ -5,22 +5,22 @@ const cheerio = require('cheerio')
  * @param {Object} parameters the parameters to verify
  */
 function verifyParameters(parameters){
-    try{
-        for(parameter of parameters){
-            var ids = [];
-            for(item of parameter){
-                if(ids.includes(item.id)){
-                    return false;
-                } else {
-                    ids.push(item.id);
-                }
+    const entries = Object.entries(parameters)
+    for (const [host, parameters] of entries) {
+        console.log(`There are ${host} ${parameters}s`)
+        console.log(parameters)
+
+        var ids = [];
+        for(item of parameters){
+            if(ids.includes(item.id)){
+                console.log("ID : " + item.id + " already exists!")
+                return false;
+            } else {
+                ids.push(item.id);
             }
         }
-        return true;
-    } catch (err) {
-        console.log(err);
-        return false;
     }
+    return true;
 }
 
 /**
@@ -45,27 +45,9 @@ function filterWords(textToFilter, wordsToFilterWith){
     return foundWords;
 }
 
-function analyse(html, parameters){
-    var $ = cheerio.load(html)
-
-    var data = [];
-
-    for(parameter of parameters){
-        console.log(parameter)
-        if(parameter.action == "COPY"){
-            var retreived = $(parameter.selector).text();
-
-            console.log("Retreived with " + parameter.selector)
-            console.log(retreived)
-            data.push(retreived);
-        }
-    }
-    return data;
-}
-
 /**
  * Function that gets the html elements based on the provided parameters
- * @param {CheerioElement} html     The 
+ * @param {CheerioElement} html     The content to scrap
  * @param {Object} parameters       The array of params, see README
  * @returns {Array.<CheerioElement>}
  */
@@ -75,8 +57,9 @@ function scrap(html, parameters){
 
     for(parameter of parameters){
         data.push({
+            id : parameter.id,
             selector : parameter.selector,
-            data : $(parameter.selector)
+            data : $(parameter.selector).text()
         });
     }
     return data;
@@ -87,5 +70,5 @@ exports.verifyParameters = verifyParameters;
 
 //Methods for analysis
 exports.filterWords = filterWords;
-exports.analyse = analyse;
 exports.scrap = scrap;
+exports.findLongestMatchingHost = findLongestMatchingHost;
