@@ -1,5 +1,14 @@
 const cheerio = require('cheerio')
 
+const PROPERTY = {
+    ATTRIBUTE : "ATTRIBUTE",
+    VALUE : "VALUE",
+    PROP : "PROP",
+    DATA : "DATA",
+    TEXT : "TEXT",
+    HTML : "HTML"
+}
+
 /**
  * Verifies the parameters
  * @param {Object} parameters the parameters to verify
@@ -7,16 +16,27 @@ const cheerio = require('cheerio')
 function verifyParameters(parameters){
     const entries = Object.entries(parameters)
     for (const [host, parameters] of entries) {
-        console.log(`There are ${host} ${parameters}s`)
-        console.log(parameters)
-
         var ids = [];
-        for(item of parameters){
-            if(ids.includes(item.id)){
-                console.log("ID : " + item.id + " already exists!")
+        for(parameter of parameters){
+            //Check that is valid property
+            if(!Object.values(PROPERTY).includes(parameter.property_type)) {
+                console.log(property_type + " IS NOT A VALID PROPERTY TYPE!")
+                return false;
+            }
+
+            //If not TEXT or HTML, we need a property ID
+            if(parameter.property_type != "TEXT" && parameter.property_type != "HTML"){
+                if(!parameter.property_id){
+                    return false;
+                }
+            }
+
+            //Check that ID isn't duplicate
+            if(ids.includes(parameter.id)){
+                console.log("ID : " + parameter.id + " already exists!")
                 return false;
             } else {
-                ids.push(item.id);
+                ids.push(parameter.id);
             }
         }
     }
@@ -71,16 +91,50 @@ function findLongestMatchingHost(url, hosts){
  */
 function scrap(html, parameters){
     var $ = cheerio.load(html)
-    var data = [];
+    var dataArray = [];
 
     for(parameter of parameters){
-        data.push({
+        var selected = $(parameter.selector);
+        var data;
+
+        switch(parameter.property_type){
+            case PROPERTY.ATTRIBUTE:
+                data = selected.attr(parameter.property_id);
+                break;
+
+            case PROPERTY.VALUE:
+                data = selected.val(parameter.property_id);
+                break;
+
+            case PROPERTY.PROP:
+                data = selected.prop(parameter.property_id);
+                break;
+
+            case PROPERTY.DATA:
+                data = selected.data(parameter.property_id);
+                break;
+
+            case PROPERTY.TEXT:
+                data = selected.text();
+                break;
+
+            case PROPERTY.HTML:
+                data = selected.html();
+                break;
+
+            default:
+                throw "INVALID PARAMETER"
+                break;
+        }
+
+        dataArray.push({
             id : parameter.id,
+            description : parameter.description,
             selector : parameter.selector,
-            data : $(parameter.selector).text()
+            data : data
         });
     }
-    return data;
+    return dataArray;
 }
 
 //Validation methods

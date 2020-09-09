@@ -18,8 +18,10 @@ async function scrap(urlsPath, parametersPath, destinationPath){
         var host = url.parse(urlItem.href, true).host;
         var hostParams = parameters[host]  //See if there are any parameters for this host
 
+        var hostParams = parameters[scrapUtils.findLongestMatchingHost(urlItem.href, Object.keys(parameters))]
+
         if(hostParams){ //If there are params, analyse with the host parameters
-            var siteContent = await axios.get(urlItem.href, hostParams);
+            var siteContent = await axios.get(urlItem.href);
             var urlItemData = scrapUtils.scrap(siteContent.data, hostParams);
             data.push({
                 url:urlItem.href,
