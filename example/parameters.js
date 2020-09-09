@@ -5,10 +5,6 @@ parameters = {
         {
             "description": "avb",       //The name of the filter (to identify what you want to do with it)
             "selector":"xyz",     //The selector
-            "action":"COPY",            //What action to do with the selected elements
-            "options":{
-                
-            }
         }
     ],
 

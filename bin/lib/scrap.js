@@ -1,12 +1,15 @@
 const fileUtils = require('./utils/FileUtils.js');
-const analysisUtils = require('./utils/AnalysisUtils.js');
+const scrapUtils = require('./utils/ScrapUtils.js');
 const axios = require('axios');
 var url = require('url');
 
 async function scrap(urlsPath, parametersPath, destinationPath){
     var urlsFile = fileUtils.getFile(urlsPath);
     var parameters = fileUtils.getFile(parametersPath);
-    //console.log(parameters)
+
+    if(!scrapUtils.verifyParameters(parameters)){
+        return undefined;
+    }
 
     var data = [];
     var missedSites = [];
@@ -17,7 +20,7 @@ async function scrap(urlsPath, parametersPath, destinationPath){
 
         if(hostParams){ //If there are params, analyse with the host parameters
             var siteContent = await axios.get(urlItem.href, hostParams);
-            var urlItemData = analysisUtils.analyse(siteContent.data, hostParams);
+            var urlItemData = scrapUtils.scrap(siteContent.data, hostParams);
             data.push({
                 url:urlItem.href,
                 data:urlItemData

@@ -1,6 +1,29 @@
 const cheerio = require('cheerio')
 
 /**
+ * Verifies the parameters
+ * @param {Object} parameters the parameters to verify
+ */
+function verifyParameters(parameters){
+    try{
+        for(parameter of parameters){
+            var ids = [];
+            for(item of parameter){
+                if(ids.includes(item.id)){
+                    return false;
+                } else {
+                    ids.push(item.id);
+                }
+            }
+        }
+        return true;
+    } catch (err) {
+        console.log(err);
+        return false;
+    }
+}
+
+/**
  * Function that returns the list of words a text has, based on the ones we are searching for.
  * Useful for when we have large texts, to only get the words that are pertinent for us.
  * @param {String} textToFilter 
@@ -58,6 +81,9 @@ function scrap(html, parameters){
     }
     return data;
 }
+
+//Validation methods
+exports.verifyParameters = verifyParameters;
 
 //Methods for analysis
 exports.filterWords = filterWords;
