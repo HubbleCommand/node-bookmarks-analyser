@@ -3,7 +3,17 @@ const { program } = require('commander');
 const fileMerger = require('./lib/merge.js');
 const scrapper = require('./lib/scrap.js');
 const poster = require('./lib/post.js');
+const utils = require('./lib/utils/Utils.js');
 
+//Module exports to be used by other modules. This may not be needed
+module.exports = {
+    Utils:utils.exports,
+    Scrapper:scrapper,
+    Merger:fileMerger,
+    Poster:poster
+}
+
+//Commander CLI stuff
 program.version('0.0.1');
 
 /**
