@@ -12,6 +12,7 @@
     {
         "href": "https://www.bbc.com/news/world-us-canada-54039710",
         "date_added": 1599345923476,
-        "title": "Alexei Navalny: Trump refuses to condemn Russia over poisoning - BBC News"
+        "title": "Alexei Navalny: Trump refuses to condemn Russia over poisoning - BBC News",
+        "some_attribute":true
     }
 ]

@@ -127,12 +127,15 @@ function scrap(html, parameters){
                 break;
         }
 
-        dataArray.push({
+        /*dataArray.push({
             id : parameter.id,
             description : parameter.description,
             selector : parameter.selector,
             data : data
-        });
+        });*/
+        //THIS NEEDS TO BE AGNOSTIC! Just add the new data to the existing paramater
+        parameter["data"] = data;
+        dataArray.push(parameter);
     }
     return dataArray;
 }

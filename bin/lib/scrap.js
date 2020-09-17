@@ -21,11 +21,8 @@ async function scrap(urlsPath, parametersPath, destinationPath){
 
         if(hostParams){ //If there are params, analyse with the host parameters
             var siteContent = await axios.get(urlItem.href);
-            var urlItemData = scrapUtils.scrap(siteContent.data, hostParams);
-            data.push({
-                url:urlItem.href,
-                data:urlItemData
-            })
+            urlItem["data"] = scrapUtils.scrap(siteContent.data, hostParams);
+            data.push(urlItem);
         } else {        //If there is NOT any params to search by, handle!
             console.log("URL " + urlItem.href + " HAS NO PARAMETERS")
             missedSites.push(urlItem.href);
