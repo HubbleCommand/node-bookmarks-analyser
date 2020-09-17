@@ -126,14 +126,7 @@ function scrap(html, parameters){
                 throw "INVALID PARAMETER"
                 break;
         }
-
-        /*dataArray.push({
-            id : parameter.id,
-            description : parameter.description,
-            selector : parameter.selector,
-            data : data
-        });*/
-        //THIS NEEDS TO BE AGNOSTIC! Just add the new data to the existing paramater
+        
         parameter["data"] = data;
         dataArray.push(parameter);
     }
