@@ -4,20 +4,88 @@ const axios = require('axios');
 const cliProgress = require('cli-progress');
 var url = require('url');
 const _colors = require('colors');
+const events = require('events');
+var eventEmitter = new events.EventEmitter();
 
-async function scrap(urlsPath, parametersPath, destinationPath){
-    var urlsFile = fileUtils.getFile(urlsPath);
-    var parameters = fileUtils.getFile(parametersPath);
-
-    if(!scrapUtils.verifyParameters(parameters)){
+/** Main scrapping function
+ * @emits Passed        Fired when a URL has been treated, whether or not it has been scrapped
+ * @emits Retrieved     Fired when a URL is scrapped
+ * @emits Missed        Fired when a URL cannot me scrapped (no parameters to scrap with or cannot connect)
+ * @param {Object} options The things to scrap with
+ * @param {Array.<String>} options.urls       the list of URLs to scrap
+ * @param {Array.<scrapUtils.ParamElement>} options.parameters the parameters with which to scrap the URLs
+ * @returns 
+ */
+async function scrap(options){
+    //Check if we have what we need to proceed
+    if(typeof options.urls === 'undefined'){
+        return undefined;
+    }
+    if(typeof options.parameters === 'undefined'){
+        return undefined;
+    }
+    if(!scrapUtils.verifyParameters(options.parameters)){
         return undefined;
     }
 
+    //Proceed with scrapping
     var data = [];
     var missedSites = [];
 
+    for (urlItem of options.urls){
+        //See if there are any parameters for this host. Check for longest matching host URL in the case of sub-urls
+        //(i.e. we might want to scrap different parts of a site differently!)
+        var hostParams = options.parameters[scrapUtils.findLongestMatchingHost(urlItem.href, Object.keys(options.parameters))]
+
+        if(hostParams){ //If there are params, analyse with the host parameters
+            try {
+                var siteContent = await axios.get(urlItem.href);
+                var scrappedData = scrapUtils.scrap(siteContent.data, hostParams);
+                if(scrappedData.length == 0){
+                    data.push(urlItem);
+                    eventEmitter.emit("Missed", {id:1,error:"no data scrapped with provided params"})
+                } else {
+                    urlItem["data"] = scrapUtils.scrap(siteContent.data, hostParams);
+                    data.push(urlItem);
+                    eventEmitter.emit("Retrieved", urlItem)
+                }
+            } catch (err) {
+                eventEmitter.emit("Missed", {id:1,error:"could not connect"})
+            }
+        } else {        //If there is NOT any params to search by, handle!
+            missedSites.push(urlItem.href);
+            eventEmitter.emit("Missed", {id:2,error:"no host params found"})
+        }
+        eventEmitter.emit("Passed")
+    }
+    
+    return {
+        missed:missedSites,
+        scrapped:data
+    }
+}
+
+function isIterable(obj) {
+    // checks for null and undefined
+    if (obj == null) {
+      return false;
+    }
+    return typeof obj[Symbol.iterator] === 'function';
+}
+
+/**
+ * An example of how to use the scrap function
+ * @param {String} urlsPath 
+ * @param {String} parametersPath
+ * @param {String} destinationPath 
+ */
+async function scrapCLI(urlsPath, parametersPath, destinationPath){
+    var urlsFile = fileUtils.getFile(urlsPath);
+    var parameters = fileUtils.getFile(parametersPath);
+
+    //Setup some CLI progress visuals
     const multibar = new cliProgress.MultiBar({
-        format: ' |' + _colors.cyan('{bar}') + ' | "{name}" | {value}/{total}',
+        format: ' |' + _colors.cyan('{bar}') + '| {percentage}% - {value}/{total} | {name} | ',
         hideCursor: true,
         barCompleteChar: '\u2588',
         barIncompleteChar: '\u2591',
@@ -25,34 +93,46 @@ async function scrap(urlsPath, parametersPath, destinationPath){
         stopOnComplete: true
     });
 
-    var retrieved = multibar.create(urlsFile.length, 0, {name : "Retrieved"});
+    var passed = multibar.create(urlsFile.length, 0, {name : "Passed"});
     var missed = multibar.create(urlsFile.length, 0, {name : "Missed"});
 
-    for (urlItem of urlsFile){
-        //See if there are any parameters for this host. Check for longest matching host URL in the case of sub-urls
-        //(i.e. we might want to scrap different parts of a site differently!)
-        var hostParams = parameters[scrapUtils.findLongestMatchingHost(urlItem.href, Object.keys(parameters))]
+    //Add listeners for scrap events
+    eventEmitter.addListener("Retrieved", function(){
+        
+    })
+    eventEmitter.addListener("Missed", function(){
+        missed.increment();
+    })
+    eventEmitter.addListener("Passed", function(){
+        passed.increment();
+    })
 
-        if(hostParams){ //If there are params, analyse with the host parameters
-            var siteContent = await axios.get(urlItem.href);
-            urlItem["data"] = scrapUtils.scrap(siteContent.data, hostParams);
-            data.push(urlItem);
-            retrieved.increment();
-        } else {        //If there is NOT any params to search by, handle!
-            missedSites.push(urlItem.href);
-            retrieved.increment();
-            missed.increment();
+    console.log("Scrap job started at : " + new Date().toString())
+
+    //Scrap
+    var scrappedResults = await scrap({
+        urls : urlsFile,
+        parameters : parameters
+    })
+    multibar.stop();
+
+    //Do extra analysis with the scrapped data
+    for(result of scrappedResults.scrapped){
+        if(isIterable(result.data)){
+            for(data of result.data){
+                if(data.id == "rt3"){
+                    data.data = new Date(data.data).getTime()
+                }
+            }
         }
     }
 
-    multibar.stop();
-    console.log("FINISHED SCRAPPING");
-    console.log("The following URLs could not be scrapped");
-    console.log(missedSites);
-    
-    fileUtils.writeObjectToFile(data, destinationPath, 4);
-    fileUtils.writeObjectToFile(missedSites, destinationPath + ".missed", 4);
-    console.log("RESULTS HAVE BEEN WRITTEN. HAVE A NICE DAY!")
+    //Can do whatever with scrapping & analysis results, including writing results to files
+    fileUtils.writeObjectToFile(scrappedResults.scrapped, destinationPath, 4);
+    fileUtils.writeObjectToFile(scrappedResults.missed, destinationPath + ".missed", 4);
+
+    console.log("Scrap job finished at : " + new Date().toString())
 }
 
 exports.scrap = scrap
+exports.scrapCLI = scrapCLI

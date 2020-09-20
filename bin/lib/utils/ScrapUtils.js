@@ -1,5 +1,33 @@
 const cheerio = require('cheerio')
 
+//NEED A CLASS FOR PARAM THING
+class ScrapParameter{
+    constructor(){
+
+    }
+
+    verifyParameters(){
+
+    }
+}
+
+class ScrapParameters{
+    constructor(){
+
+    }
+
+    verifyParameters(){
+
+    }
+}
+
+class ScrapUtils{
+
+    verifyParameters(){
+
+    }
+}
+
 const PROPERTY = {
     ATTRIBUTE : "ATTRIBUTE",
     VALUE : "VALUE",
