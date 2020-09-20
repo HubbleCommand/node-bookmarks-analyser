@@ -18,4 +18,4 @@ async function downloadImage (url, destination) {
     })
 }
 
-exports.downloadImage = this.downloadImage
+exports.downloadImage = downloadImage

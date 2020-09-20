@@ -5,13 +5,14 @@ const scrapper = require('./lib/scrap.js');
 const poster = require('./lib/post.js');
 const utils = require('./lib/utils/Utils.js');
 
-//Module exports to be used by other modules. This may not be needed
+//Module exports for reuse.
 module.exports = {
-    Utils:utils.exports,
+    Utils:utils,
     Scrapper:scrapper,
     Merger:fileMerger,
     Poster:poster
 }
+console.log(module.exports)
 
 //Commander CLI stuff
 program.version('0.0.1');
@@ -29,6 +30,10 @@ program.command('merge')
 
 /**
  * bookmarks-analyser s -f D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json -p D:\Files\Projects\node-bookmarks-analyser\personal\news_params.json -d D:\Files\Projects\node-bookmarks-analyser\personal\analysed.json
+ * bookmarks-analyser s -f \example\bookmarks.json -p \personal\news_params.json -d \personal\analysed.json
+ * bookmarks-analyser s -f .\example\bookmarks.json -p .\personal\news_params.json -d .\personal\analysed.json
+ * bookmarks-analyser s -f bookmarks-News-2020-09-18.json -p news_params.json -d analysed_all.json
+ *
  */
 program.command('scrap')
     .alias('s')
@@ -37,7 +42,7 @@ program.command('scrap')
     .requiredOption('-p, --parameters <parameters>', 'specify file that holds analysis parameters')
     .requiredOption('-d, --destination <destination>', 'specify the output file path')
     .action(function(args){
-        scrapper.scrap(args.file, args.parameters, args.destination);
+        scrapper.scrapCLI(args.file, args.parameters, args.destination);
     });
 
 /**
