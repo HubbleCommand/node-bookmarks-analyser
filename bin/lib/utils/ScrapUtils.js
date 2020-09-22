@@ -1,4 +1,5 @@
 const cheerio = require('cheerio')
+const events = require('events');
 
 //NEED A CLASS FOR PARAM THING
 class ScrapParameter{
@@ -25,6 +26,18 @@ class ScrapUtils{
 
     verifyParameters(){
 
+    }
+}
+
+class ScrapEmitter extends events.EventEmitter {
+    constructor(){
+        super();
+    }
+    emitMissed(){
+        this.emit('scrapper-missed')
+    }
+    emitRetrieved(){
+        this.emit('scrapper-retrieved')
     }
 }
 
@@ -125,34 +138,43 @@ function scrap(html, parameters){
         var selected = $(parameter.selector);
         var data;
 
-        switch(parameter.property_type){
-            case PROPERTY.ATTRIBUTE:
-                data = selected.attr(parameter.property_id);
-                break;
-
-            case PROPERTY.VALUE:
-                data = selected.val(parameter.property_id);
-                break;
-
-            case PROPERTY.PROP:
-                data = selected.prop(parameter.property_id);
-                break;
-
-            case PROPERTY.DATA:
-                data = selected.data(parameter.property_id);
-                break;
-
-            case PROPERTY.TEXT:
-                data = selected.text();
-                break;
-
-            case PROPERTY.HTML:
-                data = selected.html();
-                break;
-
-            default:
-                throw "INVALID PARAMETER"
-                break;
+        if(selected){
+            switch(parameter.property_type){
+                case PROPERTY.ATTRIBUTE:
+                    data = selected.attr(parameter.property_id);
+                    break;
+    
+                case PROPERTY.VALUE:
+                    data = selected.val(parameter.property_id);
+                    break;
+    
+                case PROPERTY.PROP:
+                    data = selected.prop(parameter.property_id);
+                    break;
+    
+                case PROPERTY.DATA:
+                    data = selected.data(parameter.property_id);
+                    break;
+    
+                case PROPERTY.TEXT:
+                    data = selected.text();
+                    break;
+    
+                case PROPERTY.HTML:
+                    data = selected.html();
+                    break;
+    
+                default:
+                    throw "INVALID PARAMETER"
+                    break;
+            }
+        } else {
+            data = "SPAWS-rsvp-NODATA"
+            /*A random string could be generated with
+                Math.random().toString(36).substring(2, 15)
+                But we want this to be easily findable
+            */
+            parameter['SPAWS-rsvp-missing'] = true;
         }
         
         parameter["data"] = data;
