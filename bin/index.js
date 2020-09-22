@@ -30,10 +30,8 @@ program.command('merge')
 
 /**
  * bookmarks-analyser s -f D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json -p D:\Files\Projects\node-bookmarks-analyser\personal\news_params.json -d D:\Files\Projects\node-bookmarks-analyser\personal\analysed.json
- * bookmarks-analyser s -f \example\bookmarks.json -p \personal\news_params.json -d \personal\analysed.json
  * bookmarks-analyser s -f .\example\bookmarks.json -p .\personal\news_params.json -d .\personal\analysed.json
  * bookmarks-analyser s -f bookmarks-News-2020-09-18.json -p news_params.json -d analysed_all.json
- *
  */
 program.command('scrap')
     .alias('s')
