@@ -120,8 +120,13 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
     for(result of scrappedResults.scrapped){
         if(isIterable(result.data)){
             for(data of result.data){
-                if(data.id == "rt3"){
-                    data.data = new Date(data.data).getTime()
+                switch(data.id){
+                    case "rt3":
+                        data.data = new Date(data.data).getTime()
+                        break;
+                    case "bbc2":
+                        data.data = parseInt(data.data)
+                        break;
                 }
             }
         }
