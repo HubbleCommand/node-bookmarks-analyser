@@ -6,6 +6,7 @@ var url = require('url');
 const _colors = require('colors');
 const events = require('events');
 var eventEmitter = new events.EventEmitter();
+var ScrapEmitter = new scrapUtils.ScrapEmitter();
 
 /** Main scrapping function
  * @emits Passed        Fired when a URL has been treated, whether or not it has been scrapped
@@ -43,20 +44,19 @@ async function scrap(options){
                 var scrappedData = scrapUtils.scrap(siteContent.data, hostParams);
                 if(scrappedData.length == 0){
                     data.push(urlItem);
-                    eventEmitter.emit("Missed", {id:1,error:"no data scrapped with provided params"})
+                    ScrapEmitter.emitMissed({id:1,error:"no data scrapped",item:urlItem});
                 } else {
                     urlItem["data"] = scrapUtils.scrap(siteContent.data, hostParams);
                     data.push(urlItem);
-                    eventEmitter.emit("Retrieved", urlItem)
+                    ScrapEmitter.emitRetrieved(urlItem);
                 }
             } catch (err) {
-                eventEmitter.emit("Missed", {id:1,error:"could not connect"})
+                ScrapEmitter.emitMissed({id:1,error:"could not connect",item:urlItem});
             }
         } else {        //If there is NOT any params to search by, handle!
             missedSites.push(urlItem.href);
-            eventEmitter.emit("Missed", {id:2,error:"no host params found"})
+            ScrapEmitter.emitMissed({id:1,error:"no host params found",item:urlItem});
         }
-        eventEmitter.emit("Passed")
     }
     
     return {
@@ -97,15 +97,13 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
     var missed = multibar.create(urlsFile.length, 0, {name : "Missed"});
 
     //Add listeners for scrap events
-    eventEmitter.addListener("Retrieved", function(){
-        
-    })
-    eventEmitter.addListener("Missed", function(){
-        missed.increment();
-    })
-    eventEmitter.addListener("Passed", function(){
+    ScrapEmitter.on('scrapper-retrieved', (data) => {
         passed.increment();
-    })
+    });
+    ScrapEmitter.on('scrapper-missed', (data) => {
+        missed.increment();
+        passed.increment();
+    });
 
     console.log("Scrap job started at : " + new Date().toString())
 

@@ -33,11 +33,11 @@ class ScrapEmitter extends events.EventEmitter {
     constructor(){
         super();
     }
-    emitMissed(){
-        this.emit('scrapper-missed')
+    emitMissed(data){
+        this.emit('scrapper-missed', data)
     }
-    emitRetrieved(){
-        this.emit('scrapper-retrieved')
+    emitRetrieved(data){
+        this.emit('scrapper-retrieved', data)
     }
 }
 
@@ -190,3 +190,4 @@ exports.verifyParameters = verifyParameters;
 exports.filterWords = filterWords;
 exports.scrap = scrap;
 exports.findLongestMatchingHost = findLongestMatchingHost;
+exports.ScrapEmitter = ScrapEmitter;
