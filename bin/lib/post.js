@@ -1,5 +1,6 @@
-const fileUtils = require('./utils/FileUtils.js')
-const { Client } = require('@elastic/elasticsearch')
+const fileUtils = require('./utils/FileUtils.js');
+const esUtils = require('./utils/ESUtils.js');
+const { Client } = require('@elastic/elasticsearch');
 
 /**
  * Posts the given object to an ES instance
@@ -9,7 +10,7 @@ const { Client } = require('@elastic/elasticsearch')
  * @param {String} password     the password for the user
  */
 function postObject(object, url, username, password){
-    
+    esUtils.conn;
 }
 
 /**
@@ -30,8 +31,8 @@ function postFile(file, url, username, password){
             username:username,
             password:password
         } 
-    })
-    client.bulk(data)
+    });
+    client.bulk(data);
 }
 
 exports.postObject = postObject;
