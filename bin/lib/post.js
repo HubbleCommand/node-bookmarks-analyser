@@ -33,6 +33,7 @@ function postFile(file, url, username, password){
         } 
     });
     client.bulk(data);
+    client.close();
 }
 
 exports.postObject = postObject;

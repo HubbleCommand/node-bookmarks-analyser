@@ -5,7 +5,6 @@ const cliProgress = require('cli-progress');
 var url = require('url');
 const _colors = require('colors');
 const events = require('events');
-var eventEmitter = new events.EventEmitter();
 var ScrapEmitter = new scrapUtils.ScrapEmitter();
 
 /** Main scrapping function
@@ -95,6 +94,7 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
 
     var passed = multibar.create(urlsFile.length, 0, {name : "Passed"});
     var missed = multibar.create(urlsFile.length, 0, {name : "Missed"});
+    var analys = multibar.create(urlsFile.length, 0, {name : "Analysed"});
 
     //Add listeners for scrap events
     ScrapEmitter.on('scrapper-retrieved', (data) => {
@@ -112,12 +112,13 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
         urls : urlsFile,
         parameters : parameters
     })
-    multibar.stop();
+    
 
-    //Do extra analysis with the scrapped data
+    //Do extra analysis with the scrapped data. Here, we convert the time to the same millisecond unit instead of various MM/DD/YYYY formats.
     for(result of scrappedResults.scrapped){
         if(isIterable(result.data)){
             for(data of result.data){
+                analys.increment();
                 switch(data.id){
                     case "rt3":
                         data.data = new Date(data.data).getTime()
@@ -133,6 +134,8 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
     //Can do whatever with scrapping & analysis results, including writing results to files
     fileUtils.writeObjectToFile(scrappedResults.scrapped, destinationPath, 4);
     fileUtils.writeObjectToFile(scrappedResults.missed, destinationPath + ".missed", 4);
+
+    multibar.stop();
 
     console.log("Scrap job finished at : " + new Date().toString())
 }
