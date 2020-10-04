@@ -7,63 +7,6 @@ const _colors = require('colors');
 const events = require('events');
 var ScrapEmitter = new scrapUtils.ScrapEmitter();
 
-/** Main scrapping function
- * @emits Passed        Fired when a URL has been treated, whether or not it has been scrapped
- * @emits Retrieved     Fired when a URL is scrapped
- * @emits Missed        Fired when a URL cannot me scrapped (no parameters to scrap with or cannot connect)
- * @param {Object} options The things to scrap with
- * @param {Array.<String>} options.urls       the list of URLs to scrap
- * @param {Array.<scrapUtils.ParamElement>} options.parameters the parameters with which to scrap the URLs
- * @returns 
- */
-async function scrap(options){
-    //Check if we have what we need to proceed
-    if(typeof options.urls === 'undefined'){
-        return undefined;
-    }
-    if(typeof options.parameters === 'undefined'){
-        return undefined;
-    }
-    if(!scrapUtils.verifyParameters(options.parameters)){
-        return undefined;
-    }
-
-    //Proceed with scrapping
-    var data = [];
-    var missedSites = [];
-
-    for (urlItem of options.urls){
-        //See if there are any parameters for this host. Check for longest matching host URL in the case of sub-urls
-        //(i.e. we might want to scrap different parts of a site differently!)
-        var hostParams = options.parameters[scrapUtils.findLongestMatchingHost(urlItem.href, Object.keys(options.parameters))]
-
-        if(hostParams){ //If there are params, analyse with the host parameters
-            try {
-                var siteContent = await axios.get(urlItem.href);
-                var scrappedData = scrapUtils.scrap(siteContent.data, hostParams);
-                if(scrappedData.length == 0){
-                    data.push(urlItem);
-                    ScrapEmitter.emitMissed({id:1,error:"no data scrapped",item:urlItem});
-                } else {
-                    urlItem["data"] = scrapUtils.scrap(siteContent.data, hostParams);
-                    data.push(urlItem);
-                    ScrapEmitter.emitRetrieved(urlItem);
-                }
-            } catch (err) {
-                ScrapEmitter.emitMissed({id:1,error:"could not connect",item:urlItem});
-            }
-        } else {        //If there is NOT any params to search by, handle!
-            missedSites.push(urlItem.href);
-            ScrapEmitter.emitMissed({id:1,error:"no host params found",item:urlItem});
-        }
-    }
-    
-    return {
-        missed:missedSites,
-        scrapped:data
-    }
-}
-
 function isIterable(obj) {
     // checks for null and undefined
     if (obj == null) {
@@ -108,7 +51,7 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
     console.log("Scrap job started at : " + new Date().toString())
 
     //Scrap
-    var scrappedResults = await scrap({
+    var scrappedResults = await scrapUtils.scrapAll({
         urls : urlsFile,
         parameters : parameters
     })
