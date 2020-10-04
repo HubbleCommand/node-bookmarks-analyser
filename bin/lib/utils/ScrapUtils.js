@@ -2,41 +2,26 @@ const cheerio = require('cheerio')
 const events = require('events');
 const axios = require('axios');     //For some reason, there is no crash if this sin't here, but the code doesn't work.
 
-//NEED A CLASS FOR PARAM THING
-class ScrapParameter{
-    constructor(){
-
-    }
-
-    verifyParameters(){
-
-    }
-}
-
-class ScrapParameters{
-    constructor(){
-
-    }
-
-    verifyParameters(){
-
-    }
-}
-
-class ScrapUtils{
-
-    verifyParameters(){
-
-    }
-}
-
 class ScrapEmitter extends events.EventEmitter {
     constructor(){
         super();
     }
+    /**
+     * Emits event that the URL item was missed
+     * @param {Number} data.id      
+     * @param {String} data.error
+     * @param {*} data.item
+     * @emits ScrapEmitter#scrapper-missed
+     */
     emitMissed(data){
         this.emit('scrapper-missed', data)
     }
+
+    /**
+     * Emits event that the URL item was successfully retrieved
+     * @param {*} data
+     * @emits ScrapEmitter#scrapper-retrieved
+     */
     emitRetrieved(data){
         this.emit('scrapper-retrieved', data)
     }
@@ -133,7 +118,6 @@ function findLongestMatchingHost(url, hosts){
  * @returns {Array.<CheerioElement>}
  */
 function scrap(html, parameters){
-    console.log("scrapped")
     var $ = cheerio.load(html)
     var dataArray = [];
 
@@ -186,18 +170,60 @@ function scrap(html, parameters){
     return dataArray;
 }
 
+//This is a relatively unecessary class
+class ScrapItem {
+    constructor(href, data = null, object){
+        this = object;
+        this.href = href;
+        if(data){
+            this.data = data;
+        }
+    }
+
+    /**
+     * Set the URLItem data after the fact
+     * @param {*} data 
+     */
+    setData(data){
+        this.data = data;
+    }
+}
+
+class ScrapParameter {
+    constructor(object){
+        //Check that it has the necessary attributes
+        this = object;
+        if(!this.id){
+            //throw ``;
+            throw `no id`;
+        }
+        if(!this.description){
+            throw `no description`;
+        }
+        if(!this.selector){
+            throw `no selector`;
+        }
+        if(!this.property_type){
+            throw `no property type`;
+        }
+    }
+}
+
+class ScrapParameters{
+    constructor(){
+
+    }
+}
+
 /** Main scrapping function
- * @emits Passed        Fired when a URL has been treated, whether or not it has been scrapped
- * @emits Retrieved     Fired when a URL is scrapped
- * @emits Missed        Fired when a URL cannot me scrapped (no parameters to scrap with or cannot connect)
+ * @emits ScrapEmitter#scrapper-retrieved     Fired when a URL is scrapped
+ * @emits ScrapEmitter#scrapper-missed        Fired when a URL cannot me scrapped (no parameters to scrap with or cannot connect)
  * @param {Object} options The things to scrap with
  * @param {Array.<String>} options.urls       the list of URLs to scrap
- * @param {Array.<scrapUtils.ParamElement>} options.parameters the parameters with which to scrap the URLs
+ * @param {Array.<ParamElement>} options.parameters the parameters with which to scrap the URLs
  * @returns 
  */
 async function scrapAll(options){
-    console.log("Called me with:")
-    //console.log(options)
     //Check if we have what we need to proceed
     if(typeof options.urls === 'undefined'){
         console.log("No URLs")
@@ -225,17 +251,16 @@ async function scrapAll(options){
             try {
                 var siteContent = await axios.get(urlItem.href);
                 var scrappedData = scrap(siteContent.data, hostParams);
-                console.log(scrappedData)
                 if(scrappedData.length == 0){
                     data.push(urlItem);
-                    ScrapEmitterLoc.emitMissed({id:1,error:"no data scrapped",item:urlItem});
+                    ScrapEmitterLoc.emitMissed({id:2,error:"no data scrapped",item:urlItem});
                 } else {
                     urlItem["data"] = scrappedData;
                     data.push(urlItem);
                     ScrapEmitterLoc.emitRetrieved(urlItem);
                 }
             } catch (err) {
-                ScrapEmitterLoc.emitMissed({id:1,error:"could not connect",item:urlItem});
+                ScrapEmitterLoc.emitMissed({id:3,error:"could not connect",item:urlItem});
             }
         } else {        //If there is NOT any params to search by, handle!
             missedSites.push(urlItem.href);
@@ -249,12 +274,12 @@ async function scrapAll(options){
     }
 }
 
-//Validation methods
-exports.verifyParameters = verifyParameters;
+//Export classes
+exports.ScrapEmitter = ScrapEmitter;
 
 //Methods for analysis
 exports.filterWords = filterWords;
 exports.scrap = scrap;
-/*module.*/exports.scrapAll = scrapAll;
+exports.scrapAll = scrapAll;
 exports.findLongestMatchingHost = findLongestMatchingHost;
-exports.ScrapEmitter = ScrapEmitter;
+exports.verifyParameters = verifyParameters;
