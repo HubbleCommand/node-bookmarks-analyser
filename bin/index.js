@@ -18,14 +18,25 @@ console.log(module.exports)
 program.version('0.0.1');
 
 /**
- * bookmarks-analyser m -f D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json
+ * bookmarks-analyser m -t a -f D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json D:\Files\Projects\node-bookmarks-analyser\example\bookmarks.json
+ * bookmarks-analyser m -t o -f dataA1.json dataA2.json dataA3.json dataA4.json dataA5.json dataA6.json dataA7.json dataA8.json dataA9.json dataA10.json dataA11.json dataA12.json dataA13.json dataA14.json dataA15.json dataA16.json dataA17.json dataA18.json dataA19.json
  */
 program.command('merge')
     .alias('m')
     .description('Will merge all requested files')
+    .requiredOption('-t, --type <type>', 'specify merge operation type: a for array or o for object')
     .requiredOption('-f, --files <files...>', 'specify files')
     .action(function(args){
-        fileMerger.mergeFiles(args.files)
+        switch(args.type){
+            case 'a':
+                fileMerger.mergeFilesArrays(args.files)
+                break;
+            case 'o':
+                fileMerger.mergeFilesObjects(args.files)
+                break;
+            default:
+                console.log("Need to choose an operation type!")
+        }
     });
 
 /**
