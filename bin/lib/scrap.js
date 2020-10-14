@@ -83,5 +83,4 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
     console.log("Scrap job finished at : " + new Date().toString())
 }
 
-exports.scrap = scrap
 exports.scrapCLI = scrapCLI

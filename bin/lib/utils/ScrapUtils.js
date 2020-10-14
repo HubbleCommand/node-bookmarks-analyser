@@ -170,10 +170,12 @@ function scrap(html, parameters){
     return dataArray;
 }
 
+
 //This is a relatively unecessary class
 class ScrapItem {
     constructor(href, data = null, object){
-        this = object;
+        //this = object;  //This doesn't work https://www.w3schools.com/js/js_object_constructors.asp --> "Note that this is not a variable. It is a keyword. You cannot change the value of this."
+        Object.assign(this, object);
         this.href = href;
         if(data){
             this.data = data;
@@ -192,7 +194,7 @@ class ScrapItem {
 class ScrapParameter {
     constructor(object){
         //Check that it has the necessary attributes
-        this = object;
+        Object.assign(this, object);
         if(!this.id){
             //throw ``;
             throw `no id`;
