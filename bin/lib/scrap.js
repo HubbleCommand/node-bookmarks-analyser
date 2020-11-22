@@ -6,6 +6,7 @@ var url = require('url');
 const _colors = require('colors');
 const events = require('events');
 var ScrapEmitter = new scrapUtils.ScrapEmitter();
+const exiftool = require("exiftool-vendored").exiftool
 
 function isIterable(obj) {
     // checks for null and undefined
@@ -61,15 +62,43 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
     for(result of scrappedResults.scrapped){
         if(isIterable(result.data)){
             for(data of result.data){
-                analys.increment();
+                //Do something different based on host:
+                var host = findLongestMatchingHost(result.href, Object.keys(parameters));
+
+                switch(host){
+
+                }
+
+                
                 switch(data.id){
                     case "rt3":
                         data.data = new Date(data.data).getTime()
+                        //TODO, make it download images & add metadata with EXIF format:
+                        /**
+                         * https://www.npmjs.com/package/exif or https://www.npmjs.com/package/exiftool-vendored (https://stackoverflow.com/questions/53515567/please-recommend-a-node-module-for-writing-iptc-data-to-images)
+                         * https://www.exif.org/
+                         * https://www.windowscentral.com/how-edit-picture-metadata-windows-10
+                         */
+                        //USE https://www.npmjs.com/package/exiftool-vendored, can read & write!
+                        
+                        exiftool.read('C:/Users/sasha/Desktop/q.jpg').then((tags /*: Tags */) => {
+                            console.log("YO")
+                            console.log(
+                                `Make: ${tags.Make}, Model: ${tags.Model}, Errors: ${tags.errors}`
+                            )
+                            console.log(tags)
+                        }).catch((err) => console.error("Something terrible happened: ", err))
+
+                        //Image tags (i.e. topics) can be stored in: LastKeywordXMP, as semi-colon seperated entries (i.e. : bob; steve; muriel)
+                        //In this case tho, as an array, so -> ["bob", "steve", "muriel"]
+
                         break;
                     case "bbc2":
                         data.data = parseInt(data.data)
                         break;
                 }
+
+                analys.increment();
             }
         }
     }
