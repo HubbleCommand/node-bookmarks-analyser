@@ -89,8 +89,8 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
                             console.log(tags)
                         }).catch((err) => console.error("Something terrible happened: ", err))
 
-                        //Image tags (i.e. topics) can be stored in: LastKeywordXMP, as semi-colon seperated entries (i.e. : bob; steve; muriel)
-                        //In this case tho, as an array, so -> ["bob", "steve", "muriel"]
+                        //Image tags (i.e. topics) can be stored in: LastKeywordXMP / XPKeywords / Subject, as semi-colon seperated entries (i.e. : bob; steve; muriel)
+                        //In LastKeywordXMP / Subject cases tho, read as an array, so -> ["bob", "steve", "muriel"]
 
                         break;
                     case "bbc2":
