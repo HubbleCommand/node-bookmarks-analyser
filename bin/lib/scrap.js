@@ -6,6 +6,7 @@ var url = require('url');
 const _colors = require('colors');
 const events = require('events');
 var ScrapEmitter = new scrapUtils.ScrapEmitter();
+var eventEmitter = new events.EventEmitter();
 const exiftool = require("exiftool-vendored").exiftool
 
 function isIterable(obj) {
@@ -41,15 +42,17 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
     var analys = multibar.create(urlsFile.length, 0, {name : "Analysed"});
 
     //Add listeners for scrap events
-    ScrapEmitter.on('scrapper-retrieved', (data) => {
+    ScrapEmitter.on("scrapper-retrieved", (data) => {
+        console.log("RETR-on")
         passed.increment();
     });
-    ScrapEmitter.on('scrapper-missed', (data) => {
+    ScrapEmitter.on("scrapper-missed", (data) => {
+        console.log("MISS-on")
         missed.increment();
         passed.increment();
     });
-
     console.log("Scrap job started at : " + new Date().toString())
+    console.log(`We have ${ScrapEmitter.listenerCount("scrapper-retrieved")} listener(s) for the buy event`);
 
     //Scrap
     var scrappedResults = await scrapUtils.scrapAll({
@@ -64,9 +67,9 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
             for(data of result.data){
                 //Do something different based on host:
                 var host = findLongestMatchingHost(result.href, Object.keys(parameters));
-
+                console.log(host)
                 switch(host){
-
+                    
                 }
 
                 

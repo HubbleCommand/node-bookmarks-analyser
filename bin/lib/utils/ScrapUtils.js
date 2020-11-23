@@ -14,7 +14,8 @@ class ScrapEmitter extends events.EventEmitter {
      * @emits ScrapEmitter#scrapper-missed
      */
     emitMissed(data){
-        this.emit('scrapper-missed', data)
+        console.log("MISS-emit")
+        this.emit("scrapper-missed", data)
     }
 
     /**
@@ -23,7 +24,16 @@ class ScrapEmitter extends events.EventEmitter {
      * @emits ScrapEmitter#scrapper-retrieved
      */
     emitRetrieved(data){
-        this.emit('scrapper-retrieved', data)
+        console.log("RETR-emit")
+        this.emit("scrapper-retrieved", data)
+    }
+    
+    miss(){
+        return 'scrapper-missed';
+    }
+
+    retrieve(){
+        return 'scrapper-retrieved';
     }
 }
 var ScrapEmitterLoc = new ScrapEmitter();
@@ -226,6 +236,36 @@ class ScrapParameters{
  * @returns 
  */
 async function scrapAll(options){
+
+    var emitter = require('events').EventEmitter;
+
+    var em = new emitter();
+
+    //Subscribe FirstEvent
+    em.addListener('FirstEvent', function (data) {
+        console.log('First subscriber: ' + data);
+    });
+
+    //Subscribe SecondEvent
+    em.on('SecondEvent', function (data) {
+        console.log('First subscriber: ' + data);
+    });
+
+    em.on('scrapper-missed', function (data) {
+        //console.log('First missed: ' + data);
+    });
+
+    // Raising FirstEvent
+    em.emit('FirstEvent', 'This is my first Node.js event emitter example.');
+
+    // Raising SecondEvent
+    em.emit('SecondEvent', 'This is my second Node.js event emitter example.');
+
+    // Raising SecondEvent
+    em.emit('scrapper-missed', 'This is my second Node.js event emitter example.');
+
+
+
     //Check if we have what we need to proceed
     if(typeof options.urls === 'undefined'){
         console.log("No URLs")
@@ -267,6 +307,7 @@ async function scrapAll(options){
         } else {        //If there is NOT any params to search by, handle!
             missedSites.push(urlItem.href);
             ScrapEmitterLoc.emitMissed({id:1,error:"no host params found",item:urlItem});
+            em.emit('scrapper-missed', 'This is my second Node.js event emitter example.');
         }
     }
     
