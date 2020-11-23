@@ -12,7 +12,7 @@ module.exports = {
     Merger:fileMerger,
     Poster:poster
 }
-console.log(module.exports)
+//console.log(module.exports)
 
 //Commander CLI stuff
 program.version('0.0.1');
