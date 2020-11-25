@@ -1,12 +1,11 @@
 const fileUtils = require('./utils/FileUtils.js');
-const scrapUtils = require('./utils/ScrapUtils.js');
+
 const axios = require('axios');
 const cliProgress = require('cli-progress');
 var url = require('url');
 const _colors = require('colors');
 const events = require('events');
-var ScrapEmitter = new scrapUtils.ScrapEmitter();
-var eventEmitter = new events.EventEmitter();
+
 const exiftool = require("exiftool-vendored").exiftool
 
 function isIterable(obj) {
@@ -37,9 +36,24 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
         stopOnComplete: true
     });
 
+    
+
     var passed = multibar.create(urlsFile.length, 0, {name : "Passed"});
     var missed = multibar.create(urlsFile.length, 0, {name : "Missed"});
     var analys = multibar.create(urlsFile.length, 0, {name : "Analysed"});
+
+    var em = new events.EventEmitter;
+
+    em.on('scrapper', function (data) {
+        console.log('First missed A: ' + data);
+    });
+
+    em.on('cock', function (data) {
+        console.log('Cock: ' + data);
+    });
+
+    const scrapUtils = require('./utils/ScrapUtils.js');
+    var ScrapEmitter = new scrapUtils.ScrapEmitter();
 
     //Add listeners for scrap events
     ScrapEmitter.on("scrapper-retrieved", (data) => {
@@ -51,8 +65,19 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
         missed.increment();
         passed.increment();
     });
+    ScrapEmitter.on("scrapper", (data) => {
+        console.log("SCRAP-on")
+        missed.increment();
+        passed.increment();
+    });
+
+    
+
+    
+
     console.log("Scrap job started at : " + new Date().toString())
-    console.log(`We have ${ScrapEmitter.listenerCount("scrapper-retrieved")} listener(s) for the buy event`);
+    console.log(`We have ${ScrapEmitter.listenerCount("scrapper-retrieved")} listener(s) for the scrapper-retrieved event`);
+    console.log(`We have ${ScrapEmitter.listenerCount("scrapper")} listener(s) for the scrapper event`);
 
     //Scrap
     var scrappedResults = await scrapUtils.scrapAll({

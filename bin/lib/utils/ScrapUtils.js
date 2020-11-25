@@ -27,16 +27,7 @@ class ScrapEmitter extends events.EventEmitter {
         console.log("RETR-emit")
         this.emit("scrapper-retrieved", data)
     }
-    
-    miss(){
-        return 'scrapper-missed';
-    }
-
-    retrieve(){
-        return 'scrapper-retrieved';
-    }
 }
-var ScrapEmitterLoc = new ScrapEmitter();
 
 const PROPERTY = {
     ATTRIBUTE : "ATTRIBUTE",
@@ -237,9 +228,7 @@ class ScrapParameters{
  */
 async function scrapAll(options){
 
-    var emitter = require('events').EventEmitter;
-
-    var em = new emitter();
+    var em = new events.EventEmitter();
 
     //Subscribe FirstEvent
     em.addListener('FirstEvent', function (data) {
@@ -252,7 +241,15 @@ async function scrapAll(options){
     });
 
     em.on('scrapper-missed', function (data) {
-        //console.log('First missed: ' + data);
+        console.log('First missed B: ' + data);
+    });
+
+    em.on('scrapper', function (data) {
+        console.log('First scrapped B: ' + data + "BITCH");
+    });
+
+    em.on('scrapper-retrieved', () => {
+        console.log('First scrapped retrieved B: ' + data);
     });
 
     // Raising FirstEvent
@@ -263,6 +260,7 @@ async function scrapAll(options){
 
     // Raising SecondEvent
     em.emit('scrapper-missed', 'This is my second Node.js event emitter example.');
+    em.emit('scrapper-retrieved', 'SCRAP RETR.');
 
 
 
@@ -283,6 +281,8 @@ async function scrapAll(options){
     //Proceed with scrapping
     var data = [];
     var missedSites = [];
+
+    var ScrapEmitterLoc = new ScrapEmitter();
 
     for (urlItem of options.urls){
         //See if there are any parameters for this host. Check for longest matching host URL in the case of sub-urls
@@ -307,8 +307,9 @@ async function scrapAll(options){
         } else {        //If there is NOT any params to search by, handle!
             missedSites.push(urlItem.href);
             ScrapEmitterLoc.emitMissed({id:1,error:"no host params found",item:urlItem});
-            em.emit('scrapper-missed', 'This is my second Node.js event emitter example.');
+            em.emit("scrapper", 'This is my second Node.js event emitter example.');
         }
+        em.emit('cock', 'SCRAP RETR.');
     }
     
     return {
