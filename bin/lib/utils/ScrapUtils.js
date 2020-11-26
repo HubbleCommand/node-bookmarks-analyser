@@ -1,33 +1,5 @@
 const cheerio = require('cheerio')
-const events = require('events');
-const axios = require('axios');     //For some reason, there is no crash if this sin't here, but the code doesn't work.
-
-class ScrapEmitter extends events.EventEmitter {
-    constructor(){
-        super();
-    }
-    /**
-     * Emits event that the URL item was missed
-     * @param {Number} data.id      
-     * @param {String} data.error
-     * @param {*} data.item
-     * @emits ScrapEmitter#scrapper-missed
-     */
-    emitMissed(data){
-        console.log("MISS-emit")
-        this.emit("scrapper-missed", data)
-    }
-
-    /**
-     * Emits event that the URL item was successfully retrieved
-     * @param {*} data
-     * @emits ScrapEmitter#scrapper-retrieved
-     */
-    emitRetrieved(data){
-        console.log("RETR-emit")
-        this.emit("scrapper-retrieved", data)
-    }
-}
+const axios = require('axios');     //For some reason, there is no crash if this isn't here, but the code doesn't work.
 
 const PROPERTY = {
     ATTRIBUTE : "ATTRIBUTE",
@@ -171,6 +143,17 @@ function scrap(html, parameters){
     return dataArray;
 }
 
+/**
+ * 
+ * @param {*} obj 
+ */
+function isIterable(obj) {
+    // checks for null and undefined
+    if (obj == null) {
+      return false;
+    }
+    return typeof obj[Symbol.iterator] === 'function';
+}
 
 //This is a relatively unecessary class
 class ScrapItem {
@@ -219,51 +202,13 @@ class ScrapParameters{
 }
 
 /** Main scrapping function
- * @emits ScrapEmitter#scrapper-retrieved     Fired when a URL is scrapped
- * @emits ScrapEmitter#scrapper-missed        Fired when a URL cannot me scrapped (no parameters to scrap with or cannot connect)
+ * @deprecated better implementation in scrap.js.
  * @param {Object} options The things to scrap with
  * @param {Array.<String>} options.urls       the list of URLs to scrap
  * @param {Array.<ParamElement>} options.parameters the parameters with which to scrap the URLs
  * @returns 
  */
 async function scrapAll(options){
-
-    var em = new events.EventEmitter();
-
-    //Subscribe FirstEvent
-    em.addListener('FirstEvent', function (data) {
-        console.log('First subscriber: ' + data);
-    });
-
-    //Subscribe SecondEvent
-    em.on('SecondEvent', function (data) {
-        console.log('First subscriber: ' + data);
-    });
-
-    em.on('scrapper-missed', function (data) {
-        console.log('First missed B: ' + data);
-    });
-
-    em.on('scrapper', function (data) {
-        console.log('First scrapped B: ' + data + "BITCH");
-    });
-
-    em.on('scrapper-retrieved', () => {
-        console.log('First scrapped retrieved B: ' + data);
-    });
-
-    // Raising FirstEvent
-    em.emit('FirstEvent', 'This is my first Node.js event emitter example.');
-
-    // Raising SecondEvent
-    em.emit('SecondEvent', 'This is my second Node.js event emitter example.');
-
-    // Raising SecondEvent
-    em.emit('scrapper-missed', 'This is my second Node.js event emitter example.');
-    em.emit('scrapper-retrieved', 'SCRAP RETR.');
-
-
-
     //Check if we have what we need to proceed
     if(typeof options.urls === 'undefined'){
         console.log("No URLs")
@@ -282,8 +227,6 @@ async function scrapAll(options){
     var data = [];
     var missedSites = [];
 
-    var ScrapEmitterLoc = new ScrapEmitter();
-
     for (urlItem of options.urls){
         //See if there are any parameters for this host. Check for longest matching host URL in the case of sub-urls
         //(i.e. we might want to scrap different parts of a site differently!)
@@ -295,21 +238,16 @@ async function scrapAll(options){
                 var scrappedData = scrap(siteContent.data, hostParams);
                 if(scrappedData.length == 0){
                     data.push(urlItem);
-                    ScrapEmitterLoc.emitMissed({id:2,error:"no data scrapped",item:urlItem});
                 } else {
                     urlItem["data"] = scrappedData;
                     data.push(urlItem);
-                    ScrapEmitterLoc.emitRetrieved(urlItem);
                 }
             } catch (err) {
-                ScrapEmitterLoc.emitMissed({id:3,error:"could not connect",item:urlItem});
+                missedSites.push(urlItem.href);
             }
         } else {        //If there is NOT any params to search by, handle!
             missedSites.push(urlItem.href);
-            ScrapEmitterLoc.emitMissed({id:1,error:"no host params found",item:urlItem});
-            em.emit("scrapper", 'This is my second Node.js event emitter example.');
         }
-        em.emit('cock', 'SCRAP RETR.');
     }
     
     return {
@@ -318,12 +256,10 @@ async function scrapAll(options){
     }
 }
 
-//Export classes
-exports.ScrapEmitter = ScrapEmitter;
-
 //Methods for analysis
 exports.filterWords = filterWords;
 exports.scrap = scrap;
 exports.scrapAll = scrapAll;
 exports.findLongestMatchingHost = findLongestMatchingHost;
 exports.verifyParameters = verifyParameters;
+exports.isIterable = isIterable;

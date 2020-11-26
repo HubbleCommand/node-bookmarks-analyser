@@ -1,20 +1,10 @@
 const fileUtils = require('./utils/FileUtils.js');
-
+const scrapUtils = require('./utils/ScrapUtils.js');
 const axios = require('axios');
 const cliProgress = require('cli-progress');
 var url = require('url');
 const _colors = require('colors');
-const events = require('events');
-
 const exiftool = require("exiftool-vendored").exiftool
-
-function isIterable(obj) {
-    // checks for null and undefined
-    if (obj == null) {
-      return false;
-    }
-    return typeof obj[Symbol.iterator] === 'function';
-}
 
 /**
  * An example of how to use the scrap function
@@ -36,65 +26,65 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
         stopOnComplete: true
     });
 
-    
-
     var passed = multibar.create(urlsFile.length, 0, {name : "Passed"});
     var missed = multibar.create(urlsFile.length, 0, {name : "Missed"});
     var analys = multibar.create(urlsFile.length, 0, {name : "Analysed"});
 
-    var em = new events.EventEmitter;
-
-    em.on('scrapper', function (data) {
-        console.log('First missed A: ' + data);
-    });
-
-    em.on('cock', function (data) {
-        console.log('Cock: ' + data);
-    });
-
-    const scrapUtils = require('./utils/ScrapUtils.js');
-    var ScrapEmitter = new scrapUtils.ScrapEmitter();
-
-    //Add listeners for scrap events
-    ScrapEmitter.on("scrapper-retrieved", (data) => {
-        console.log("RETR-on")
-        passed.increment();
-    });
-    ScrapEmitter.on("scrapper-missed", (data) => {
-        console.log("MISS-on")
-        missed.increment();
-        passed.increment();
-    });
-    ScrapEmitter.on("scrapper", (data) => {
-        console.log("SCRAP-on")
-        missed.increment();
-        passed.increment();
-    });
-
-    
-
-    
-
     console.log("Scrap job started at : " + new Date().toString())
-    console.log(`We have ${ScrapEmitter.listenerCount("scrapper-retrieved")} listener(s) for the scrapper-retrieved event`);
-    console.log(`We have ${ScrapEmitter.listenerCount("scrapper")} listener(s) for the scrapper event`);
 
-    //Scrap
-    var scrappedResults = await scrapUtils.scrapAll({
-        urls : urlsFile,
-        parameters : parameters
-    })
+    if(!scrapUtils.verifyParameters(parameters)){
+        console.log("Params bad")
+        return undefined;
+    }
+
+    //Proceed with scrapping
+    var dataScrapped = [];
+    var missedSites = [];
+
+    for (urlItem of urlsFile){
+        //See if there are any parameters for this host. Check for longest matching host URL in the case of sub-urls
+        //(i.e. we might want to scrap different parts of a site differently!)
+        var hostParams = parameters[scrapUtils.findLongestMatchingHost(urlItem.href, Object.keys(parameters))]
+
+        if(hostParams){ //If there are params, analyse with the host parameters
+            try {
+                var siteContent = await axios.get(urlItem.href);
+                var scrappedData = scrapUtils.scrap(siteContent.data, hostParams);
+                if(scrappedData.length == 0){
+                    dataScrapped.push(urlItem);
+                    passed.increment();
+                    missed.increment();
+                } else {
+                    urlItem["data"] = scrappedData;
+                    dataScrapped.push(urlItem);
+                    passed.increment();
+
+                    //TODO We got the site, so we can do the analysis here
+                }
+            } catch (err) {
+                missedSites.push(urlItem.href);
+                passed.increment();
+                missed.increment();
+            }
+        } else {        //If there is NOT any params to search by, handle!
+            missedSites.push(urlItem.href);
+            passed.increment();
+            missed.increment();
+        }
+    }
     
-
     //Do extra analysis with the scrapped data. Here, we convert the time to the same millisecond unit instead of various MM/DD/YYYY formats.
-    for(result of scrappedResults.scrapped){
-        if(isIterable(result.data)){
+    for(result of dataScrapped){
+        if(scrapUtils.isIterable(result.data)){
             for(data of result.data){
                 //Do something different based on host:
                 var host = findLongestMatchingHost(result.href, Object.keys(parameters));
                 console.log(host)
                 switch(host){
-                    
+                    case "www.rt.com":
+                        break;
+                    case "www.bbc.com":
+                        break;
                 }
 
                 
@@ -102,12 +92,6 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
                     case "rt3":
                         data.data = new Date(data.data).getTime()
                         //TODO, make it download images & add metadata with EXIF format:
-                        /**
-                         * https://www.npmjs.com/package/exif or https://www.npmjs.com/package/exiftool-vendored (https://stackoverflow.com/questions/53515567/please-recommend-a-node-module-for-writing-iptc-data-to-images)
-                         * https://www.exif.org/
-                         * https://www.windowscentral.com/how-edit-picture-metadata-windows-10
-                         */
-                        //USE https://www.npmjs.com/package/exiftool-vendored, can read & write!
                         
                         exiftool.read('C:/Users/sasha/Desktop/q.jpg').then((tags /*: Tags */) => {
                             console.log("YO")
@@ -138,6 +122,11 @@ async function scrapCLI(urlsPath, parametersPath, destinationPath){
     multibar.stop();
 
     console.log("Scrap job finished at : " + new Date().toString())
+
+    return {
+        missed:missedSites,
+        scrapped:dataScrapped
+    };
 }
 
 exports.scrapCLI = scrapCLI

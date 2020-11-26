@@ -1,4 +1,5 @@
 var fs = require('fs');
+const exiftool = require("exiftool-vendored").exiftool
 
 function writeObjectToFile(object, filePath, delimiter){
     fs.writeFileSync(filePath, JSON.stringify(object, null, delimiter));
@@ -12,5 +13,10 @@ function getFile(filePath){
     }
 }
 
+function tagImage(image, tags){
+    exiftool.write(image, tags).then(() => {return;}).catch(() => {throw "Error";})
+}
+
 exports.getFile = getFile;
 exports.writeObjectToFile = writeObjectToFile;
+exports.tagImage = tagImage;
