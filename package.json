@@ -21,7 +21,7 @@
     "homepage": "https://github.com/HubbleCommand/node-bookmarks-analyser#readme",
     "dependencies": {
         "@elastic/elasticsearch": "^7.9.0",
-        "axios": "^0.20.0",
+        "axios": "^0.21.1",
         "cheerio": "^1.0.0-rc.3",
         "cli-progress": "^3.8.2",
         "colors": "^1.4.0",
